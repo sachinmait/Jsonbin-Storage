@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Calendar, Users } from "lucide-react";
+import { BookOpen, Calendar, Users, UserPlus } from "lucide-react";
 import Directory from "@/pages/Directory";
 import Feed from "@/pages/Feed";
 import Events from "@/pages/Events";
+import Join from "@/pages/Join";
 import { initBins, isConfigured, getStudents, getPosts, getEvents } from "@/lib/jsonbin";
 import { MOCK_STUDENTS, MOCK_POSTS, MOCK_EVENTS } from "@/lib/mockData";
 import type { Student, Post, CampusEvent } from "@/types";
 
-type Tab = "directory" | "feed" | "events";
+type Tab = "directory" | "feed" | "events" | "join";
 
 const NAV_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "directory", label: "Directory", icon: <Users className="w-5 h-5" /> },
   { id: "feed", label: "Feed", icon: <BookOpen className="w-5 h-5" /> },
   { id: "events", label: "Events", icon: <Calendar className="w-5 h-5" /> },
+  { id: "join", label: "Join", icon: <UserPlus className="w-5 h-5" /> },
 ];
 
 export default function App() {
@@ -145,6 +147,9 @@ export default function App() {
           )}
           {activeTab === "events" && (
             <Events events={events} setEvents={setEvents} />
+          )}
+          {activeTab === "join" && (
+            <Join students={students} setStudents={setStudents} />
           )}
         </div>
       </main>
