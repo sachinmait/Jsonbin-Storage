@@ -12,6 +12,7 @@ type FormState = {
   university: string;
   track: string;
   bio: string;
+  avatarUrl: string;
   linkedin: string;
   github: string;
   instagram: string;
@@ -22,16 +23,41 @@ const INITIAL_FORM: FormState = {
   university: "",
   track: "",
   bio: "",
+  avatarUrl: "",
   linkedin: "",
   github: "",
   instagram: "",
 };
 
+function isValidUrl(value: string) {
+  if (!value.trim()) return true;
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+async function saveWithRetry<T>(data: T[], retries = 2) {
+  let lastError: unknown = null;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      await saveStudents(data);
+      return;
+    } catch (err) {
+      lastError = err;
+      if (i < retries) await new Promise((r) => setTimeout(r, 600 * (i + 1)));
+    }
+  }
+  throw lastError;
+}
+
 export default function Join({ students, setStudents }: JoinProps) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "saved" | "local-only" | "error">("idle");
+  const [message, setMessage] = useState<string>("");
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -39,44 +65,56 @@ export default function Join({ students, setStudents }: JoinProps) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    setStatus("idle");
+    setMessage("");
 
     if (!form.name.trim() || !form.university.trim() || !form.track.trim()) {
-      setError("Name, Home University, and Track are required.");
+      setStatus("error");
+      setMessage("Name, Home University, and Track are required.");
+      return;
+    }
+
+    if (!isValidUrl(form.avatarUrl) || !isValidUrl(form.linkedin) || !isValidUrl(form.github) || !isValidUrl(form.instagram)) {
+      setStatus("error");
+      setMessage("Please enter valid URLs (starting with http:// or https://).");
       return;
     }
 
     setSubmitting(true);
+
+    const newStudent: Student = {
+      id: crypto.randomUUID(),
+      name: form.name.trim(),
+      university: form.university.trim(),
+      major: form.track.trim(),
+      year: "Summer 2025",
+      bio: form.bio.trim() || "New member",
+      interests: [],
+      avatar: form.avatarUrl.trim(),
+      socialLinks: {
+        linkedin: form.linkedin.trim(),
+        github: form.github.trim(),
+        instagram: form.instagram.trim(),
+      },
+    };
+
+    const updated = [newStudent, ...students];
+    setStudents(updated);
+
     try {
-      const nextStudent: Student = {
-        id: crypto.randomUUID(),
-        name: form.name.trim(),
-        university: form.university.trim(),
-        major: form.track.trim(),
-        year: "Summer 2025",
-        bio: form.bio.trim() || "New member",
-        interests: [],
-        avatar: "",
-        socialLinks: {
-          linkedin: form.linkedin.trim(),
-          github: form.github.trim(),
-          instagram: form.instagram.trim(),
-        },
-      };
-
-      const updated = [nextStudent, ...students];
-      setStudents(updated);
-
       if (isConfigured()) {
-        await saveStudents(updated);
+        await saveWithRetry(updated, 2);
+        setStatus("saved");
+        setMessage("Saved to server successfully ✅");
+      } else {
+        setStatus("local-only");
+        setMessage("Saved locally in this session only (JSONBin key not configured).");
       }
-
       setForm(INITIAL_FORM);
-      setSuccess("Your information has been submitted successfully!");
     } catch (err) {
       console.error(err);
-      setError("Failed to submit details. Please try again.");
+      setStatus("local-only");
+      setMessage("Added on screen, but server save failed. Check VITE_JSONBIN_MASTER_KEY and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -127,7 +165,17 @@ export default function Join({ students, setStudents }: JoinProps) {
           </div>
 
           <div>
-            <label className="text-sm font-medium">LinkedIn</label>
+            <label className="text-sm font-medium">Avatar Image URL</label>
+            <input
+              className="mt-1 w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              value={form.avatarUrl}
+              onChange={(e) => updateField("avatarUrl", e.target.value)}
+              placeholder="https://example.com/photo.jpg"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">LinkedIn URL</label>
             <input
               className="mt-1 w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
               value={form.linkedin}
@@ -137,7 +185,7 @@ export default function Join({ students, setStudents }: JoinProps) {
           </div>
 
           <div>
-            <label className="text-sm font-medium">GitHub</label>
+            <label className="text-sm font-medium">GitHub URL</label>
             <input
               className="mt-1 w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
               value={form.github}
@@ -147,7 +195,7 @@ export default function Join({ students, setStudents }: JoinProps) {
           </div>
 
           <div>
-            <label className="text-sm font-medium">Instagram</label>
+            <label className="text-sm font-medium">Instagram URL</label>
             <input
               className="mt-1 w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
               value={form.instagram}
@@ -167,15 +215,17 @@ export default function Join({ students, setStudents }: JoinProps) {
           />
         </div>
 
-        {error && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm px-3 py-2">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="rounded-xl border border-green-500/30 bg-green-500/10 text-green-700 text-sm px-3 py-2">
-            {success}
+        {status !== "idle" && (
+          <div
+            className={`rounded-xl border text-sm px-3 py-2 ${
+              status === "saved"
+                ? "border-green-500/30 bg-green-500/10 text-green-700"
+                : status === "local-only"
+                ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
+                : "border-destructive/30 bg-destructive/10 text-destructive"
+            }`}
+          >
+            {message}
           </div>
         )}
 
