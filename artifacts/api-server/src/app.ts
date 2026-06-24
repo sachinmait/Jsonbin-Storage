@@ -2,12 +2,19 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttpImport from "pino-http";
 import type { IncomingMessage, ServerResponse } from "http";
+import type { Logger } from "pino";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
-const pinoHttp =
-  (pinoHttpImport as unknown as { default?: typeof pinoHttpImport }).default ??
-  (pinoHttpImport as unknown as typeof import("pino-http"));
+type PinoHttpFn = (opts?: {
+  logger?: Logger;
+  serializers?: {
+    req?: (req: IncomingMessage & { id?: string }) => Record<string, unknown>;
+    res?: (res: ServerResponse) => Record<string, unknown>;
+  };
+}) => express.RequestHandler;
+
+const pinoHttp = pinoHttpImport as unknown as PinoHttpFn;
 
 const app: Express = express();
 
