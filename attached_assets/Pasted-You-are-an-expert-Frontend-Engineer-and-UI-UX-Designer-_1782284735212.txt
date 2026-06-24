@@ -1,0 +1,48 @@
+You are an expert Frontend Engineer and UI/UX Designer. Build a complete, responsive React web application for a Summer School Community Platform called "CampusConnect" based on the Product Requirement Document (PRD) provided below. 
+
+### TECH STACK REQUIREMENTS
+- React (Functional components, Hooks)
+- Tailwind CSS for styling (Modern, clean, vibrant university-vibe UI)
+- Lucide React for modern, clean icons
+- Mock Data: Create a robust set of mock data for students, events, and feed posts so the app feels completely alive and usable immediately.
+
+---
+
+### PRODUCT REQUIREMENT DOCUMENT (PRD)
+
+#### 1. Target Audience & Core UX
+- Summer school students and admins. The platform must feel elite, friendly, and highly intuitive. 
+- It must be fully mobile-responsive (mobile-first design), as students will use it on their phones while on campus.
+
+#### 2. Feature Requirements
+
+##### Feature 1: User Directory & "Introduction Cards"
+- Grid-view directory displaying "Intro Cards" for each student.
+- Each Card Must Display: Profile Picture, Full Name, Home College/University, Summer Course Track (e.g., Data Science, Innovation, Literature), a short Bio (max 280 chars), and social media quick-links (LinkedIn, GitHub, Instagram icons).
+- Search & Filter: A persistent sticky top bar containing a real-time text search (searches names and colleges) and a dropdown filter by "Summer Course Track".
+
+##### Feature 2: Community Feed (Information Sharing)
+- A central timeline where students can view and create posts.
+- Post Creation: A simple card at the top allowing users to write text and choose a required tag/category: #General, #Housing, #StudyGroups, or #RideSharing.
+- Post Feed: Displays the user's name, track, time elapsed, post content, and a stylized badge for the category tag.
+- Interactions: Functional "Like" button (toggles state and increments count) and a "Comment" button that opens an inline text field to add a comment.
+
+##### Feature 3: Event Management
+- A dedicated split view or tab showing a calendar list of upcoming events.
+- Event Categorization: Differentiate clearly between "Official Program Events" (highlighted/pinned with an admin badge) and "Casual Student Meetups".
+- Event Details: Displays Title, Date & Time, Location, Description, and an interactive RSVP panel.
+- RSVP Interactivity: A button group for "Going", "Maybe", and "Can't Go" that updates the user's selection and live-updates the attendee count.
+
+---
+
+### APPLICATION STRUCTURE & IMPLEMENTATION DETAILS
+
+Please implement a single-page layout with a beautiful, fixed sidebar/bottom navigation bar to switch between three main views:
+1. 📇 Directory (Intro Cards)
+2. 💬 Community Feed
+3. 📅 Events Calendar
+
+#### Additional Instructions:
+- State Management: Use React `useState` and `useMemo` effectively to manage the application state locally (adding new posts, adding comments, updating RSVPs, changing navigation tabs, filtering students).
+- Aesthetic: Use a modern color palette (e.g., Indigo/Violet accents, clean slate backgrounds, plenty of whitespace, subtle borders, and smooth hover transitions).
+- Code Quality: Write clean, self-contained, modular React code. Provide everything in a fully functional component structure without skipping sections or leaving "placeholder/todo" comments.
