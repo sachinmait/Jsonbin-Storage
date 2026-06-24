@@ -4,7 +4,7 @@ import pinoHttpImport from "pino-http";
 import type { IncomingMessage, ServerResponse } from "http";
 import type { Logger } from "pino";
 import router from "./routes/index.js";
-import { logger } from "./lib/logger";
+import { logger } from "./lib/logger.js";
 
 type PinoHttpFn = (opts?: {
   logger?: Logger;
